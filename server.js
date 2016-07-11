@@ -1,12 +1,13 @@
 var express = require('express'),
     request = require('request'),
     bodyParser = require('body-parser'),
-    open = require("open"),
     argv = require('minimist')(process.argv.slice(2)),
     app = express(),
     root = argv.r || argv.root || process.env.ROOT || '.',
     port = argv.p || argv.port || process.env.PORT || '8200',
-    debug = argv.d || argv.debug || process.env.DEBUG || false;
+    debug = argv.d || argv.debug || process.env.DEBUG || false,
+    path = require('path');
+
 
 if (argv.h || argv.help) {
     console.log('USAGE Example:');
@@ -22,7 +23,16 @@ app.use(express.static(root));
 // Serve default oauthcallback.html during development if one is not available in root
 app.use(express.static(__dirname + '/oauth'));
 
-app.all('*', function (req, res, next) {
+app.all('/*', function(req, res, next) {
+    if ( req.originalUrl.indexOf("/services/") !== -1 ) {
+        return next();
+    } else {
+        res.sendFile(path.resolve(__dirname, '../../'+root+'/index.html'));
+    }
+
+});
+
+app.all('/services/*', function (req, res, next) {
 
     // Set CORS headers: allow all origins, methods, and headers: you may want to lock this down in a production environment
     res.header("Access-Control-Allow-Origin", "*");
@@ -39,7 +49,7 @@ app.all('*', function (req, res, next) {
             return;
         }
         var url = targetURL + req.url;
-        if (debug) console.log(req.method + ' ' + url);
+        console.log(req.method + ' ' + url);
         if (debug) console.log('Request body:');
         if (debug) console.log(req.body);
         request({ url: url, method: req.method, json: req.body, headers: {'Authorization': req.header('Authorization')} },
@@ -56,5 +66,4 @@ app.all('*', function (req, res, next) {
 app.listen(port, function () {
     console.log('force-server listening on port ' + port);
     console.log('Root: ' + root);
-    open("http://localhost:" + port);
 });
