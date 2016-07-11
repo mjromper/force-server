@@ -8,6 +8,10 @@ var express = require('express'),
     debug = argv.d || argv.debug || process.env.DEBUG || false,
     path = require('path');
 
+//Converter Class
+var Converter = require("csvtojson").Converter;
+var converter = new Converter( {} ); //for big csv data
+
 
 if (argv.h || argv.help) {
     console.log('USAGE Example:');
@@ -24,12 +28,25 @@ app.use(express.static(root));
 app.use(express.static(__dirname + '/oauth'));
 
 app.all('/*', function(req, res, next) {
-    if ( req.originalUrl.indexOf("/services/") !== -1 ) {
+    if ( req.originalUrl.indexOf("/services/") !== -1 ||  req.originalUrl.indexOf("/bamtypes") !== -1 ) {
         return next();
     } else {
         res.sendFile(path.resolve(__dirname, '../../'+root+'/index.html'));
     }
 
+});
+
+var activities = [];
+converter.on("end_parsed", function (jsonArray) {
+    console.log("end_parsed_bamtypes"); //here is your result json object
+    activities = jsonArray;
+});
+request.get("https://dl.dropboxusercontent.com/u/11081420/BAM%20Activities%20v6.csv?t="+Math.random()).pipe(converter);
+
+
+app.get('/bamtypes', function ( req, res ) {
+    res.header("Content-Type", "application/json");
+    res.send(activities);
 });
 
 app.all('/services/*', function (req, res, next) {
