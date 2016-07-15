@@ -28,6 +28,7 @@
     "express": "~4.9.8",
     "minimist": "^1.1.0",
     "open": "0.0.5",
-    "request": "~2.45.0"
+    "request": "~2.45.0",
+    "csvtojson": "^1.0.0"
   }
 }
