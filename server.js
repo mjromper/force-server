@@ -1,25 +1,15 @@
 var express = require('express'),
     request = require('request'),
-    bodyParser = require('body-parser'),
-    argv = require('minimist')(process.argv.slice(2)),
     app = express(),
-    root = argv.r || argv.root || process.env.ROOT || '.',
-    port = argv.p || argv.port || process.env.PORT || '8200',
-    debug = argv.d || argv.debug || process.env.DEBUG || false,
+    root = process.env.ROOT || './client',
+    port = process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || '8200',
+    ip = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1',
+    debug = process.env.DEBUG || false,
     path = require('path');
 
 //Converter Class
 var Converter = require("csvtojson").Converter;
 var converter = new Converter( {} ); //for big csv data
-
-
-if (argv.h || argv.help) {
-    console.log('USAGE Example:');
-    console.log('force-server --port 8200 --root /users/chris/projects --debug');
-    return;
-}
-
-app.use(bodyParser.json());
 
 // Server application
 app.use(express.static(root));
@@ -80,7 +70,7 @@ app.all('/services/*', function (req, res, next) {
     }
 });
 
-app.listen(port, function () {
+app.listen(port, ip, function () {
     console.log('force-server listening on port ' + port);
     console.log('Root: ' + root);
 });
